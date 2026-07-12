@@ -1,0 +1,102 @@
+# Global settings
+global:
+  environment: production
+  log_level: INFO
+  telemetry:
+    provider: langsmith
+    endpoint: https://api.smith.langchain.com
+  timezone: UTC
+
+# Agent-specific configurations
+agents:
+  supervisor-agent:
+    model: gpt-4-turbo
+    temperature: 0.2
+    tools: [transfer_to_agent, get_agent_status, list_available_agents]
+    rate_limit:
+      requests_per_minute: 60
+
+  payments-agent:
+    model: gpt-4o
+    temperature: 0.1
+    tools:
+      - create_stripe_payment_intent
+      - initiate_halal_escrow
+      - validate_pci_token
+    rate_limit:
+      requests_per_minute: 30
+    env_vars:
+      STRIPE_SECRET: ${STRIPE_SECRET}
+      PAYPAL_CLIENT: ${PAYPAL_CLIENT}
+      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY}
+      XRPL_WALLET_SEED: ${XRPL_WALLET_SEED}
+
+  logistics-agent:
+    model: gpt-4o
+    temperature: 0.3
+    tools:
+      - get_dhl_rates
+      - predict_eta
+      - subscribe_iot_sensor
+    env_vars:
+      DHL_API_KEY: ${DHL_API_KEY}
+      MQTT_BROKER: ${MQTT_BROKER}
+
+  erp-agent:
+    model: claude-3-opus
+    temperature: 0.1
+    tools:
+      - sync_odoo_order
+      - generate_xero_invoice
+      - query_financial_rag
+    rate_limit:
+      requests_per_minute: 20
+
+  ecom-pos-agent:
+    model: gpt-4-turbo
+    temperature: 0.2
+    tools:
+      - shopify_sync_products
+      - resolve_inventory_conflict
+      - restore_offline_orders
+    env_vars:
+      SHOPIFY_API_KEY: ${SHOPIFY_API_KEY}
+      WOOCOMMERCE_CONSUMER_KEY: ${WOOCOMMERCE_CONSUMER_KEY}
+
+  crm-agent:
+    model: claude-3-sonnet
+    temperature: 0.4
+    tools:
+      - sync_hubspot_contact
+      - trigger_whatsapp_campaign
+      - calculate_clv
+    env_vars:
+      HUBSPOT_ACCESS_TOKEN: ${HUBSPOT_ACCESS_TOKEN}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+
+  ai-agent:
+    model: mistral-large-latest
+    temperature: 0.7
+    tools:
+      - query_halal_knowledge_base
+      - book_inspection
+      - generate_voice_response
+    rate_limit:
+      requests_per_minute: 100
+
+  blockchain-agent:
+    model: gpt-4o
+    temperature: 0.05
+    tools:
+      - deploy_cert_contract
+      - certify_product
+      - verify_qr_payload
+      - generate_zk_proof
+    env_vars:
+      ETH_RPC_URL: ${ETH_RPC_URL}
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL}
+      XRPL_WSS: ${XRPL_WSS}
+      PINATA_JWT: ${PINATA_JWT}
+      FILECOIN_TOKEN: ${FILECOIN_TOKEN}
+    rate_limit:
+      requests_per_minute: 10  # Blockchain calls are heavy

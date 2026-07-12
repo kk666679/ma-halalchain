@@ -1,0 +1,36 @@
+# ============================================================
+# INSERT THIS BLOCK INTO YOUR AGENTS.md FILE
+# (Replace existing <!-- intent-skills:start --> block)
+# ============================================================
+<!-- intent-skills:start -->
+# TanStack Intent - before editing files, run the matching guidance command.
+tanstackIntent:
+  - id: "@halalchain/marketplace#supervisor-agent"
+    run: "npx @tanstack/intent@latest load @halalchain/marketplace#supervisor-agent"
+    for: "Agent routing, handoffs, orchestration, and system status"
+  - id: "@halalchain/marketplace#payments-agent"
+    run: "npx @tanstack/intent@latest load @halalchain/marketplace#payments-agent"
+    for: "Payment gateways, BNPL, escrow, PCI-DSS, token transactions"
+  - id: "@halalchain/marketplace#logistics-agent"
+    run: "npx @tanstack/intent@latest load @halalchain/marketplace#logistics-agent"
+    for: "Carrier APIs, route optimization, IoT cold-chain, tracking"
+  - id: "@halalchain/marketplace#erp-agent"
+    run: "npx @tanstack/intent@latest load @halalchain/marketplace#erp-agent"
+    for: "Odoo/SAP sync, Xero/QuickBooks, tax compliance, reconciliation"
+  - id: "@halalchain/marketplace#ecom-pos-agent"
+    run: "npx @tanstack/intent@latest load @halalchain/marketplace#ecom-pos-agent"
+    for: "Shopify/WooCommerce/Magento, POS systems, inventory sync, CDC"
+  - id: "@halalchain/marketplace#crm-agent"
+    run: "npx @tanstack/intent@latest load @halalchain/marketplace#crm-agent"
+    for: "HubSpot/Salesforce, Klaviyo, WhatsApp, loyalty rewards, CLV"
+  - id: "@halalchain/marketplace#ai-agent"
+    run: "npx @tanstack/intent@latest load @halalchain/marketplace#ai-agent"
+    for: "LangChain ReAct, AutoGen, voice assistants, RAG, fine-tuning"
+  - id: "@halalchain/marketplace#blockchain-agent"
+    run: "npx @tanstack/intent@latest load @halalchain/marketplace#blockchain-agent"
+    for: "Smart contracts (Solidity/Anchor), ZK proofs, multi-chain, certifications"
+  - id: "@halalchain/shared#ipfs-module"
+    run: "npx @tanstack/intent@latest load @halalchain/shared#ipfs-module"
+    for: "IPFS pinning, retrieval, gateway fallback, Filecoin, IPNS"
+# ============================================================
+<!-- intent-skills:end -->

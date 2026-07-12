@@ -1,0 +1,19 @@
+team_name: "HalalCertificationTeam"
+agents:
+  - blockchain-agent
+  - ipfs-module
+  - erp-agent
+  - crm-agent
+orchestration:
+  mode: "sequential"
+  steps:
+    - agent: blockchain-agent
+      action: certify_product
+    - agent: ipfs-module
+      action: upload_certificate_pdf
+    - agent: erp-agent
+      action: sync_odoo_order
+    - agent: crm-agent
+      action: trigger_whatsapp_campaign
+fallback:
+  - supervisor-agent

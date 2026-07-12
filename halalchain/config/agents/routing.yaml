@@ -1,0 +1,133 @@
+# Supervisor Routing Configuration
+# Used by the LangGraph Router Node to decide which agent to call.
+#
+# The supervisor computes a vector embedding of the user query
+# and compares it to the `semantic_match` phrases below.
+
+routing_rules:
+  - agent_id: payments-agent
+    semantic_match:
+      - "pay"
+      - "stripe"
+      - "paypal"
+      - "razorpay"
+      - "midtrans"
+      - "mopay"
+      - "bnpl"
+      - "atome"
+      - "klarna"
+      - "escrow"
+      - "myhalal token"
+    priority: 1
+    fallback_agent: supervisor-agent
+
+  - agent_id: logistics-agent
+    semantic_match:
+      - "shipping"
+      - "delivery"
+      - "dhl"
+      - "fedex"
+      - "j&t"
+      - "ninja van"
+      - "grabexpress"
+      - "lalamove"
+      - "tracking"
+      - "eta"
+      - "route"
+      - "iot sensor"
+      - "cold chain"
+    priority: 1
+
+  - agent_id: erp-agent
+    semantic_match:
+      - "odoo"
+      - "sap"
+      - "dynamics"
+      - "xero"
+      - "quickbooks"
+      - "zoho books"
+      - "invoice"
+      - "accounting"
+      - "gl"
+      - "tax"
+      - "reconciliation"
+    priority: 1
+
+  - agent_id: ecom-pos-agent
+    semantic_match:
+      - "shopify"
+      - "woocommerce"
+      - "magento"
+      - "opencart"
+      - "bigcommerce"
+      - "square pos"
+      - "lightspeed"
+      - "toast"
+      - "catalog sync"
+      - "middleware"
+    priority: 1
+
+  - agent_id: crm-agent
+    semantic_match:
+      - "hubspot"
+      - "salesforce"
+      - "zoho crm"
+      - "mailchimp"
+      - "klaviyo"
+      - "whatsapp"
+      - "loyalty"
+      - "reward"
+      - "clv"
+      - "segment"
+      - "campaign"
+    priority: 1
+
+  - agent_id: ai-agent
+    semantic_match:
+      - "chatbot"
+      - "langchain"
+      - "react"
+      - "alexa"
+      - "google assistant"
+      - "voice commerce"
+      - "llm"
+      - "rag"
+      - "autogen"
+    priority: 1
+
+  - agent_id: blockchain-agent
+    semantic_match:
+      - "smart contract"
+      - "solidity"
+      - "anchor"
+      - "xrpl"
+      - "ethereum"
+      - "solana"
+      - "zk proof"
+      - "zero knowledge"
+      - "verifiable credential"
+      - "certify"
+      - "halal certificate"
+      - "nft"
+      - "token"
+    priority: 1
+
+  - agent_id: supervisor-agent
+    semantic_match:
+      - "help"
+      - "what can you do"
+      - "list agents"
+      - "status"
+      - "handoff"
+      - "who are you"
+    priority: 0  # Default fallback if nothing else matches
+
+# Graph configuration (LangGraph state machine)
+graph:
+  initial_node: supervisor
+  finish_node: FINISH
+  interrupt_before:
+    - blockchain-agent.deploy_contract
+    - payments-agent.execute_escrow
+  interrupt_after:
+    - blockchain-agent.verify_certificate

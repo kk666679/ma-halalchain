@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "model": "claude-3-5-sonnet-20241022",
+  "permissions": {
+    "allow_read": [".claude/**", "src/**", "contracts/**", "docs/**"],
+    "allow_write": [".claude/**", "src/**", "contracts/**"],
+    "block": ["**/.env", "**/*.pem", "**/secrets/**"]
+  },
+  "hooks": { "enabled": true, "path": ".claude/hooks" },
+  "subagents": { "enabled": true, "path": ".claude/subagents" },
+  "skills": { "enabled": true, "path": ".claude/skills" },
+  "agent_teams": { "enabled": true, "path": ".claude/agent-teams" }
+}

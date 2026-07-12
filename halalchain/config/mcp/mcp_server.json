@@ -1,0 +1,103 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/2025-03-26/server.json",
+  "name": "halalchain-agent-orchestrator",
+  "version": "1.0.0",
+  "description": "MCP Server for HalalChain Multi-Agent System",
+  "tools": [
+    {
+      "name": "transfer_to_agent",
+      "description": "Transfer the current conversation to a specialized agent",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "enum": [
+              "payments-agent",
+              "logistics-agent",
+              "erp-agent",
+              "ecom-pos-agent",
+              "crm-agent",
+              "ai-agent",
+              "blockchain-agent",
+              "supervisor-agent"
+            ],
+            "description": "The target agent to handle the task"
+          },
+          "context": {
+            "type": "object",
+            "description": "Task details, parameters, and any previous state"
+          }
+        },
+        "required": ["agent_id", "context"]
+      }
+    },
+    {
+      "name": "get_agent_status",
+      "description": "Get health, load, and last activity of a specific agent",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "list_available_agents",
+      "description": "List all registered agents with their capabilities"
+    },
+    {
+      "name": "invoke_blockchain_tool",
+      "description": "Directly invoke a blockchain module tool (deploy, certify, verify)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string",
+            "enum": [
+              "deploy_cert_contract",
+              "certify_product",
+              "verify_qr_payload",
+              "generate_zk_proof"
+            ]
+          },
+          "params": { "type": "object" }
+        },
+        "required": ["tool", "params"]
+      }
+    },
+    {
+      "name": "invoke_ipfs_tool",
+      "description": "Directly invoke an IPFS module tool (upload, retrieve, verify)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string",
+            "enum": [
+              "upload_certificate_pdf",
+              "retrieve_certificate",
+              "verify_ipfs_integrity",
+              "publish_ipns",
+              "filecoin_archive"
+            ]
+          },
+          "params": { "type": "object" }
+        },
+        "required": ["tool", "params"]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "resource://halalchain/agents/status",
+      "mimeType": "application/json",
+      "description": "Real-time status of all agents"
+    },
+    {
+      "uri": "resource://halalchain/blockchain/contracts",
+      "mimeType": "application/json",
+      "description": "List of deployed Halal certification contracts"
+    }
+  ]
+}

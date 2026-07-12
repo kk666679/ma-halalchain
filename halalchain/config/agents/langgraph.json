@@ -1,0 +1,37 @@
+{
+  "state_schema": "AgentState",
+  "nodes": [
+    { "id": "supervisor", "type": "router", "config": { "routing_file": "config/agents/routing.yaml" } },
+    { "id": "payments-agent", "type": "worker", "module": "halalchain.agents.payments" },
+    { "id": "logistics-agent", "type": "worker", "module": "halalchain.agents.logistics" },
+    { "id": "erp-agent", "type": "worker", "module": "halalchain.agents.erp" },
+    { "id": "ecom-pos-agent", "type": "worker", "module": "halalchain.agents.ecommerce_pos" },
+    { "id": "crm-agent", "type": "worker", "module": "halalchain.agents.crm" },
+    { "id": "ai-agent", "type": "worker", "module": "halalchain.agents.ai_chatbot" },
+    { "id": "blockchain-agent", "type": "worker", "module": "halalchain.agents.blockchain" }
+  ],
+  "edges": [
+    { "from": "supervisor", "to": "payments-agent", "condition": "route_to_payments" },
+    { "from": "supervisor", "to": "logistics-agent", "condition": "route_to_logistics" },
+    { "from": "supervisor", "to": "erp-agent", "condition": "route_to_erp" },
+    { "from": "supervisor", "to": "ecom-pos-agent", "condition": "route_to_ecom_pos" },
+    { "from": "supervisor", "to": "crm-agent", "condition": "route_to_crm" },
+    { "from": "supervisor", "to": "ai-agent", "condition": "route_to_ai" },
+    { "from": "supervisor", "to": "blockchain-agent", "condition": "route_to_blockchain" },
+    { "from": "payments-agent", "to": "supervisor", "condition": "always" },
+    { "from": "logistics-agent", "to": "supervisor", "condition": "always" },
+    { "from": "erp-agent", "to": "supervisor", "condition": "always" },
+    { "from": "ecom-pos-agent", "to": "supervisor", "condition": "always" },
+    { "from": "crm-agent", "to": "supervisor", "condition": "always" },
+    { "from": "ai-agent", "to": "supervisor", "condition": "always" },
+    { "from": "blockchain-agent", "to": "supervisor", "condition": "always" }
+  ],
+  "checkpointer": {
+    "type": "postgres",
+    "dsn": "postgresql://halalchain:password@postgres:5432/langgraph"
+  },
+  "interrupts": [
+    { "node": "blockchain-agent", "action": "deploy_contract", "reason": "Legal approval required for mainnet deployment" },
+    { "node": "payments-agent", "action": "execute_escrow", "reason": "Manual verification for amounts > 10,000 MYR" }
+  ]
+}

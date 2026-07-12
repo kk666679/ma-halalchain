@@ -1,0 +1,15 @@
+team_name: "PaymentFulfillmentTeam"
+agents:
+  - payments-agent
+  - logistics-agent
+  - ecom-pos-agent
+orchestration:
+  mode: "parallel"
+  tasks:
+    - agent: payments-agent
+      action: create_stripe_payment_intent
+    - agent: logistics-agent
+      action: get_dhl_rates
+    - agent: ecom-pos-agent
+      action: shopify_sync_products
+after_all: supervisor-agent

@@ -1,0 +1,24 @@
+plugins:
+  - name: "halalchain-payments"
+    version: "1.0.0"
+    source: "https://github.com/halalchain/plugins/payments"
+    skills:
+      - payments-agent
+    hooks:
+      - pre-tool-use
+      - post-tool-use
+  - name: "halalchain-blockchain"
+    version: "1.0.0"
+    source: "https://github.com/halalchain/plugins/blockchain"
+    skills:
+      - blockchain-agent
+      - ipfs-module
+    subagents:
+      - security-audit
+  - name: "halalchain-crm"
+    version: "0.9.0"
+    source: "https://github.com/halalchain/plugins/crm"
+    skills:
+      - crm-agent
+    hooks:
+      - post-tool-use

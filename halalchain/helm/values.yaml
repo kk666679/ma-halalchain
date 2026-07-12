@@ -1,0 +1,12 @@
+# Default values (overridden by halalchain/config/kubernetes/values.yaml)
+replicaCount: 1
+image:
+  repository: halalchain/agent-system
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8080
+ingress:
+  enabled: false
+
