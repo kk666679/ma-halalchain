@@ -1,0 +1,1 @@
+{"name":"halalchain-agent","version":"1.0.0","bin":{"halalchain-agent":"bin/cli.js"},"license":"MIT"}

@@ -1,0 +1,83 @@
+services:
+  # IPFS node – for certificate storage
+  ipfs:
+    image: ipfs/kubo:latest
+    container_name: halalchain-ipfs
+    ports:
+      - "5001:5001"   # API
+      - "8081:8080"   # Gateway (host 8081 to avoid 8080 conflict)
+    volumes:
+      - ipfs-data:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    restart: unless-stopped
+
+  # PostgreSQL – for LangGraph checkpointer and agent state
+  postgres:
+    image: postgres:15-alpine
+    container_name: halalchain-postgres
+    environment:
+      POSTGRES_USER: halalchain
+      POSTGRES_PASSWORD: halalchain
+      POSTGRES_DB: langgraph
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Kafka + Zookeeper – event-driven communication
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: halalchain-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: halalchain-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: unless-stopped
+
+  # Agent Orchestrator (FastAPI + LangGraph)
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.agents
+    container_name: halalchain-orchestrator
+    depends_on:
+      - postgres
+      - kafka
+      - ipfs
+    ports:
+      - "8080:8080"   # API
+      - "8000:8000"   # MCP SSE endpoint
+    environment:
+      - DATABASE_URL=postgresql://halalchain:halalchain@postgres:5432/langgraph
+      - KAFKA_BROKER=kafka:9092
+      - IPFS_API_URL=http://ipfs:5001
+      - ETH_RPC_URL=${ETH_RPC_URL}
+      - PINATA_JWT=${PINATA_JWT}
+      # ... other env vars loaded from .env
+    env_file:
+      - .env
+    volumes:
+      - ./config:/app/config
+      - ./.intent:/app/.intent
+    restart: unless-stopped
+
+volumes:
+  ipfs-data:
+  postgres-data:

@@ -1,0 +1,16 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+langchain==0.3.10
+langgraph==0.2.60
+langsmith==0.1.147
+
+openai==1.59.8
+anthropic==0.37.1
+psycopg2-binary==2.9.10
+kafka-python==2.0.2
+ipfshttpclient==0.8.0a2
+web3==7.5.0
+solana==0.35.0
+pydantic==2.10.3
+python-dotenv==1.0.1
+pyyaml==6.0.2
