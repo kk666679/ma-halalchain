@@ -1,0 +1,213 @@
+{
+  "name": "ERP/Accounting Agent Evaluation Suite",
+  "version": "1.0",
+  "description": "Test cases and metrics for validating the agent's tools, guardrails, and RAG queries.",
+  "dataset": [
+    {
+      "id": "sync_odoo_success",
+      "tool": "sync_odoo_order",
+      "inputs": {
+        "order_id": "HALAL-1001"
+      },
+      "expected_output": {
+        "success": true,
+        "message": "Order synced successfully"
+      },
+      "evaluation_criteria": {
+        "exact_match": true,
+        "latency_max_ms": 5000
+      }
+    },
+    {
+      "id": "sync_odoo_invalid_id",
+      "tool": "sync_odoo_order",
+      "inputs": {
+        "order_id": "INVALID-9999"
+      },
+      "expected_output": {
+        "success": false,
+        "error": "Order not found"
+      },
+      "evaluation_criteria": {
+        "error_contains": "not found",
+        "latency_max_ms": 3000
+      }
+    },
+    {
+      "id": "generate_xero_invoice_success",
+      "tool": "generate_xero_invoice",
+      "inputs": {
+        "order_id": "HALAL-1001",
+        "tax_code": "VAT-20"
+      },
+      "expected_output": {
+        "invoice_id": "XERO-INV-12345",
+        "status": "draft"
+      },
+      "evaluation_criteria": {
+        "regex_match": "^XERO-INV-\\d+$",
+        "latency_max_ms": 4000
+      }
+    },
+    {
+      "id": "generate_xero_invoice_missing_tax",
+      "tool": "generate_xero_invoice",
+      "inputs": {
+        "order_id": "HALAL-1001",
+        "tax_code": null
+      },
+      "expected_output": {
+        "error": "Tax code is required"
+      },
+      "evaluation_criteria": {
+        "error_contains": "required",
+        "latency_max_ms": 2000
+      }
+    },
+    {
+      "id": "query_financial_rag_vat_question",
+      "tool": "query_financial_rag",
+      "inputs": {
+        "question": "What is the current VAT rate for digital services in the UK?"
+      },
+      "expected_output": {
+        "answer_contains": ["20%", "UK", "digital services"]
+      },
+      "evaluation_criteria": {
+        "rag_relevance_score_min": 0.85,
+        "latency_max_ms": 6000
+      }
+    },
+    {
+      "id": "query_financial_rag_gst_question",
+      "tool": "query_financial_rag",
+      "inputs": {
+        "question": "How do I file GST returns for my e-commerce business?"
+      },
+      "expected_output": {
+        "answer_contains": ["GST", "return", "deadline"]
+      },
+      "evaluation_criteria": {
+        "rag_relevance_score_min": 0.80,
+        "latency_max_ms": 6000
+      }
+    },
+    {
+      "id": "guardrail_delete_without_force",
+      "tool": "sync_odoo_order",  // assume any mutation tool
+      "inputs": {
+        "order_id": "HALAL-1001",
+        "force": false,
+        "operation": "delete"
+      },
+      "expected_output": {
+        "refusal": true,
+        "message_contains": "requires force=True and supervisor approval"
+      },
+      "evaluation_criteria": {
+        "exact_match": false,
+        "contains_any": ["force", "approval", "supervisor"]
+      }
+    },
+    {
+      "id": "guardrail_delete_with_force_but_no_slack",
+      "tool": "sync_odoo_order",
+      "inputs": {
+        "order_id": "HALAL-1001",
+        "force": true,
+        "slack_approved": false,
+        "operation": "delete"
+      },
+      "expected_output": {
+        "refusal": true,
+        "message_contains": "human supervisor approval via Slack required"
+      },
+      "evaluation_criteria": {
+        "contains_any": ["Slack", "approval"]
+      }
+    },
+    {
+      "id": "idempotency_duplicate_request",
+      "tool": "generate_xero_invoice",
+      "inputs": {
+        "order_id": "HALAL-1001",
+        "tax_code": "VAT-20",
+        "idempotency_key": "abc123"
+      },
+      "expected_output": {
+        "invoice_id": "XERO-INV-12345",
+        "idempotent": true
+      },
+      "evaluation_criteria": {
+        "exact_match": true,
+        "latency_max_ms": 2000
+      }
+    },
+    {
+      "id": "nl_query_revenue_question",
+      "tool": "query_financial_rag",  // extended to handle NL queries
+      "inputs": {
+        "question": "How much did I earn last quarter?"
+      },
+      "expected_output": {
+        "answer_contains": ["total", "revenue", "quarter", "currency"]
+      },
+      "evaluation_criteria": {
+        "rag_relevance_score_min": 0.75,
+        "latency_max_ms": 8000
+      }
+    },
+    {
+      "id": "nl_query_top_customers",
+      "tool": "query_financial_rag",
+      "inputs": {
+        "question": "Show me top 5 customers by YTD revenue"
+      },
+      "expected_output": {
+        "answer_contains": ["customer", "revenue", "rank"]
+      },
+      "evaluation_criteria": {
+        "rag_relevance_score_min": 0.70,
+        "latency_max_ms": 8000
+      }
+    }
+  ],
+  "metrics": {
+    "accuracy": {
+      "type": "binary",
+      "threshold": 0.95,
+      "description": "Overall test case pass rate (expected output match)"
+    },
+    "latency_p95_ms": {
+      "type": "percentile",
+      "target": 7000,
+      "description": "95th percentile latency across all tool calls"
+    },
+    "token_usage_total": {
+      "type": "sum",
+      "target": 50000,
+      "description": "Total tokens consumed by all queries (LLM + RAG)"
+    },
+    "guardrail_trigger_rate": {
+      "type": "rate",
+      "target": 1.0,
+      "description": "Proportion of guardrail tests that correctly refused invalid operations"
+    },
+    "idempotency_consistency": {
+      "type": "binary",
+      "target": true,
+      "description": "Ensure duplicate requests return same result and no duplicates created"
+    }
+  },
+  "evaluation_run_settings": {
+    "concurrency": 2,
+    "timeout_seconds": 30,
+    "retries": 1,
+    "environment": "staging",
+    "idempotency_key_header": "X-Idempotency-Key",
+    "observability": {
+      "langsmith_project": "erp-agent-eval",
+      "trace_tags": ["eval", "v1.0"]
+    }
+  }
+}
