@@ -1,0 +1,213 @@
+{
+  "name": "AI/Chatbot Agent Evaluation Suite",
+  "version": "1.0",
+  "description": "Test cases for ReAct agent, voice assistant, multi-agent debate, and RAG with fine-tuning triggers.",
+  "dataset": [
+    {
+      "id": "query_kb_halal_standard",
+      "tool": "query_halal_knowledge_base",
+      "inputs": {
+        "question": "What are the requirements for slaughtering animals according to SMIIC standards?"
+      },
+      "expected_output": {
+        "answer_contains": ["slaughter", "SMIIC", "requirements"]
+      },
+      "evaluation_criteria": {
+        "rag_relevance_score_min": 0.85,
+        "latency_max_ms": 5000
+      }
+    },
+    {
+      "id": "query_kb_ambiguous",
+      "tool": "query_halal_knowledge_base",
+      "inputs": {
+        "question": "Is this halal?"
+      },
+      "expected_output": {
+        "response_contains": ["clarification", "product", "details"]
+      },
+      "evaluation_criteria": {
+        "contains_any": ["need more information", "specify", "ingredients"],
+        "latency_max_ms": 4000
+      }
+    },
+    {
+      "id": "book_inspection_success",
+      "tool": "book_inspection",
+      "inputs": {
+        "appointment_data": {
+          "facility_name": "Halal Meat Co.",
+          "date": "2026-08-15",
+          "time": "10:00",
+          "contact_email": "admin@halalmeat.com"
+        }
+      },
+      "expected_output": {
+        "booking_id": "JAKIM-2026-12345",
+        "status": "confirmed"
+      },
+      "evaluation_criteria": {
+        "regex_match": "^JAKIM-\\d{4}-\\d+$",
+        "latency_max_ms": 7000
+      }
+    },
+    {
+      "id": "book_inspection_missing_fields",
+      "tool": "book_inspection",
+      "inputs": {
+        "appointment_data": {
+          "facility_name": "Halal Meat Co.",
+          "date": "2026-08-15"
+        }
+      },
+      "expected_output": {
+        "error": "Missing required field: time or contact_email"
+      },
+      "evaluation_criteria": {
+        "error_contains": ["required", "missing"],
+        "latency_max_ms": 3000
+      }
+    },
+    {
+      "id": "generate_voice_response_success",
+      "tool": "generate_voice_response",
+      "inputs": {
+        "text": "Your Halal certification is confirmed."
+      },
+      "expected_output": {
+        "audio_bytes_length_min": 1000,
+        "mime_type": "audio/mpeg"
+      },
+      "evaluation_criteria": {
+        "length_greater_than": 500,
+        "latency_max_ms": 8000
+      }
+    },
+    {
+      "id": "multi_agent_debate_halal_claim",
+      "tool": "query_halal_knowledge_base",
+      "inputs": {
+        "question": "Is product X with ingredients A, B, C halal?",
+        "debate": true
+      },
+      "expected_output": {
+        "answer_contains": ["optimist", "skeptic", "verdict"]
+      },
+      "evaluation_criteria": {
+        "contains_all": ["optimist", "skeptic", "conclusion"],
+        "rag_relevance_score_min": 0.75,
+        "latency_max_ms": 12000
+      }
+    },
+    {
+      "id": "react_multi_step_booking",
+      "tool": "book_inspection",
+      "inputs": {
+        "question": "Check if Halal certification is required for a new product and book an inspection if needed.",
+        "steps": ["query_halal_knowledge_base", "book_inspection"]
+      },
+      "expected_output": {
+        "final_answer_contains": ["booking", "confirmed", "inspection"]
+      },
+      "evaluation_criteria": {
+        "tool_calls_sequence": ["query_halal_knowledge_base", "book_inspection"],
+        "latency_max_ms": 15000
+      }
+    },
+    {
+      "id": "voice_commerce_order",
+      "tool": "generate_voice_response",
+      "inputs": {
+        "voice_intent": "order 2kg of Halal chicken from my favourite farm",
+        "context": {"user_id": "user123"}
+      },
+      "expected_output": {
+        "response_contains": ["order", "confirmed", "farm"]
+      },
+      "evaluation_criteria": {
+        "contains_all": ["order", "confirmed", "tracking"],
+        "latency_max_ms": 10000
+      }
+    },
+    {
+      "id": "guardrail_unauthorized_inspection",
+      "tool": "book_inspection",
+      "inputs": {
+        "appointment_data": {"facility_name": "Non-certified facility"},
+        "user_role": "guest"
+      },
+      "expected_output": {
+        "refusal": true,
+        "message_contains": "permission"
+      },
+      "evaluation_criteria": {
+        "contains_any": ["permission", "authorize", "login"],
+        "latency_max_ms": 3000
+      }
+    },
+    {
+      "id": "fine_tuning_trigger",
+      "tool": "query_halal_knowledge_base",
+      "inputs": {
+        "question": "What is the ruling on gelatin from pork?",
+        "simulate_failure": true
+      },
+      "expected_output": {
+        "log_to_failure_parquet": true,
+        "retry_count": 2
+      },
+      "evaluation_criteria": {
+        "failure_logged": true,
+        "retry_behavior": "exponential_backoff",
+        "latency_max_ms": 10000
+      }
+    }
+  ],
+  "metrics": {
+    "accuracy": {
+      "type": "binary",
+      "threshold": 0.92,
+      "description": "Overall test case pass rate"
+    },
+    "latency_p95_ms": {
+      "type": "percentile",
+      "target": 10000,
+      "description": "95th percentile latency across all tool calls"
+    },
+    "token_usage_total": {
+      "type": "sum",
+      "target": 80000,
+      "description": "Total tokens consumed by all queries (LLM + RAG)"
+    },
+    "tool_sequence_correctness": {
+      "type": "binary",
+      "target": true,
+      "description": "Ensures ReAct steps follow expected order"
+    },
+    "voice_response_quality": {
+      "type": "subjective",
+      "target": "clear and natural",
+      "description": "Evaluated by human for TTS output (or automated via WER)"
+    },
+    "multi_agent_debate_coverage": {
+      "type": "rate",
+      "target": 1.0,
+      "description": "Proportion of debate cases that include both perspectives"
+    }
+  },
+  "evaluation_run_settings": {
+    "concurrency": 3,
+    "timeout_seconds": 30,
+    "retries": 2,
+    "environment": "staging",
+    "idempotency_key_header": "X-Idempotency-Key",
+    "observability": {
+      "langsmith_project": "ai-agent-eval",
+      "trace_tags": ["eval", "v1.0", "react"]
+    },
+    "kubernetes": {
+      "namespace": "halalchain-ai",
+      "hpa_metrics": ["custom.metrics.llm_queue_length", "cpu"]
+    }
+  }
+}
