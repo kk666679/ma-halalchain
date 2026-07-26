@@ -1,0 +1,248 @@
+{
+  "name": "CRM/Marketing Agent Evaluation Suite",
+  "version": "1.0",
+  "description": "Test cases for HubSpot sync, WhatsApp campaigns, CLV prediction, personalization, token-gating, segmentation reasoning, and privacy compliance.",
+  "dataset": [
+    {
+      "id": "sync_hubspot_success",
+      "tool": "sync_hubspot_contact",
+      "inputs": {
+        "customer_id": "cust_12345"
+      },
+      "expected_output": {
+        "contact_id": "hubspot_contact_67890",
+        "enriched": true
+      },
+      "evaluation_criteria": {
+        "regex_match": "^hubspot_contact_\\d+$",
+        "latency_max_ms": 3000
+      }
+    },
+    {
+      "id": "sync_hubspot_missing_customer",
+      "tool": "sync_hubspot_contact",
+      "inputs": {
+        "customer_id": "cust_invalid"
+      },
+      "expected_output": {
+        "error": "Customer not found"
+      },
+      "evaluation_criteria": {
+        "error_contains": "not found",
+        "latency_max_ms": 2000
+      }
+    },
+    {
+      "id": "trigger_whatsapp_campaign_success",
+      "tool": "trigger_whatsapp_campaign",
+      "inputs": {
+        "segment_id": "high_value_loyal",
+        "template_name": "weekly_deals"
+      },
+      "expected_output": {
+        "message_id": "WA-1234567890"
+      },
+      "evaluation_criteria": {
+        "regex_match": "^WA-\\d+$",
+        "latency_max_ms": 5000
+      }
+    },
+    {
+      "id": "trigger_whatsapp_consent_missing",
+      "tool": "trigger_whatsapp_campaign",
+      "inputs": {
+        "segment_id": "non_opted_in",
+        "template_name": "promo"
+      },
+      "expected_output": {
+        "refusal": true,
+        "message_contains": "consent"
+      },
+      "evaluation_criteria": {
+        "contains_any": ["opt-in", "consent", "permission"],
+        "latency_max_ms": 3000
+      }
+    },
+    {
+      "id": "calculate_clv_success",
+      "tool": "calculate_clv",
+      "inputs": {
+        "customer_id": "cust_12345"
+      },
+      "expected_output": {
+        "clv": 1250.75
+      },
+      "evaluation_criteria": {
+        "numeric_value_gt": 0,
+        "latency_max_ms": 1000
+      }
+    },
+    {
+      "id": "calculate_clv_no_history",
+      "tool": "calculate_clv",
+      "inputs": {
+        "customer_id": "new_cust"
+      },
+      "expected_output": {
+        "clv": 0,
+        "message": "Insufficient data"
+      },
+      "evaluation_criteria": {
+        "error_contains": ["insufficient", "data"],
+        "latency_max_ms": 1000
+      }
+    },
+    {
+      "id": "token_gate_eligible",
+      "tool": "trigger_whatsapp_campaign",
+      "inputs": {
+        "segment_id": "token_holders",
+        "template_name": "exclusive_offer",
+        "token_gated": true,
+        "min_tokens": 500
+      },
+      "expected_output": {
+        "message_id": "WA-9876543210"
+      },
+      "evaluation_criteria": {
+        "regex_match": "^WA-\\d+$",
+        "latency_max_ms": 6000
+      }
+    },
+    {
+      "id": "token_gate_ineligible",
+      "tool": "trigger_whatsapp_campaign",
+      "inputs": {
+        "segment_id": "token_holders",
+        "template_name": "exclusive_offer",
+        "token_gated": true,
+        "min_tokens": 500
+      },
+      "expected_output": {
+        "refusal": true,
+        "message_contains": "insufficient tokens"
+      },
+      "evaluation_criteria": {
+        "contains_any": ["tokens", "balance", "eligible"],
+        "latency_max_ms": 4000
+      }
+    },
+    {
+      "id": "generate_bundle_success",
+      "tool": "generate_personalized_bundle",
+      "inputs": {
+        "customer_id": "cust_12345"
+      },
+      "expected_output": {
+        "bundle": ["product_A", "product_B", "product_C"]
+      },
+      "evaluation_criteria": {
+        "contains_all": ["product_"],
+        "latency_max_ms": 2000
+      }
+    },
+    {
+      "id": "segmentation_explanation",
+      "tool": "sync_hubspot_contact",
+      "inputs": {
+        "customer_id": "cust_12345",
+        "explain": true
+      },
+      "expected_output": {
+        "segment": "high_value_loyal",
+        "reason_contains": ["CLV", "email opens"]
+      },
+      "evaluation_criteria": {
+        "contains_all": ["CLV", "email", "opens"],
+        "latency_max_ms": 4000
+      }
+    },
+    {
+      "id": "privacy_delete_request",
+      "tool": "sync_hubspot_contact",
+      "inputs": {
+        "customer_id": "cust_12345",
+        "action": "delete"
+      },
+      "expected_output": {
+        "status": "deleted",
+        "receipt": "DEL-2026-001"
+      },
+      "evaluation_criteria": {
+        "regex_match": "^DEL-\\d{4}-\\d+$",
+        "latency_max_ms": 5000
+      }
+    },
+    {
+      "id": "privacy_ccpa_opt_out",
+      "tool": "trigger_whatsapp_campaign",
+      "inputs": {
+        "segment_id": "all",
+        "template_name": "generic_promo",
+        "ccpa_opt_out": true
+      },
+      "expected_output": {
+        "refusal": true,
+        "message_contains": "CCPA opt-out"
+      },
+      "evaluation_criteria": {
+        "contains_any": ["CCPA", "opt-out", "do not sell"],
+        "latency_max_ms": 3000
+      }
+    },
+    {
+      "id": "idempotency_duplicate_sync",
+      "tool": "sync_hubspot_contact",
+      "inputs": {
+        "customer_id": "cust_12345",
+        "idempotency_key": "abc123"
+      },
+      "expected_output": {
+        "contact_id": "hubspot_contact_67890",
+        "idempotent": true
+      },
+      "evaluation_criteria": {
+        "exact_match": true,
+        "latency_max_ms": 2000
+      }
+    }
+  ],
+  "metrics": {
+    "accuracy": {
+      "type": "binary",
+      "threshold": 0.95,
+      "description": "Overall test case pass rate"
+    },
+    "latency_p95_ms": {
+      "type": "percentile",
+      "target": 5000,
+      "description": "95th percentile latency across all tool calls"
+    },
+    "token_usage_total": {
+      "type": "sum",
+      "target": 60000,
+      "description": "Total tokens consumed by all queries (LLM + RAG)"
+    },
+    "explanation_coverage": {
+      "type": "rate",
+      "target": 1.0,
+      "description": "Proportion of segmentation decisions that include a reason"
+    },
+    "privacy_compliance_rate": {
+      "type": "binary",
+      "target": true,
+      "description": "All privacy‑related tests (deletion, opt‑out) pass"
+    }
+  },
+  "evaluation_run_settings": {
+    "concurrency": 2,
+    "timeout_seconds": 30,
+    "retries": 2,
+    "environment": "staging",
+    "idempotency_key_header": "X-Idempotency-Key",
+    "observability": {
+      "langsmith_project": "crm-agent-eval",
+      "trace_tags": ["eval", "v1.0"]
+    }
+  }
+}
